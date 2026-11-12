@@ -1,1 +1,266 @@
+can you write the drafter route functions for this code? I wrote all the dataclasses and it is meant to be a poker drafter site.
+ from drafter import *
+from dataclasses import dataclass
+import random
+make sure to include the following requirements are still met:
+2) Implementing Requirements
+This table should serve as a draft for how you will implement the requirements into your final project. You may change your ideas later on, but your final site must fulfill all the requirements.
+Requirement
+Implementation
+Purpose/Functionality
+
+A 1-2 sentence description of the purpose or functionality of your site
+The purpose of my site is to create a blackjack game simulator so people can play blackjack without gambling.
+State Dataclass Attributes
+ 
+Minimum of 4 attributes, one of which must be a list/dict of instances of your second dataclass.
+
+Briefly describe each attribute, its type, and how it will be meaningfully modified throughout the site.
+
+
+
+Player_hand
+A list of cards that the player has
+Gets modified whenever a player chooses to hit/split
+Dealer_hand:
+A list of cards the dealer has
+Modified during the dealers until either the player or dealer wins
+Deck
+A list containing all the remaining cards in the deck
+Modified whenever the dealer or player draws a card
+Game_status
+Describes the current state of the game 
+Updated when the round of blackjack is over and the player or dealer wins
+Player_score
+Displays the players score
+Balance
+Tracks the players money
+Is modified at the conclusion of the round depending on whether the dealer or player won
+Second Dataclass
+
+Your second dataclass, including its attributes, their types, and how they will be meaningfully modified (if they are modified)
+
+
+
+Card
+Suit
+Doesn’t matter for blackjack, strictly to make the game more realistic
+Rank
+2-10 or a face card
+Will not be modified
+Value
+Value of the card
+Is only modified in the case of an ace (1 or 11)
+Routes (minimum 7) 
+
+The names of your route functions
+
+
+
+index()
+Home page
+start_game()
+Starts a new game
+hit()
+Gives the player another card
+stand()
+Ends the players turn
+dealer_turn()
+Dealers turn to play
+results()
+Displays the result of the game
+reset_game()
+Resets the game
+ 
+Pages (minimum 5)
+
+A brief description of the pages in your site
+
+
+
+Home page
+Introduces the game and has a start game button
+Game board page
+Displays the game board, players hand, and the dealers one visible card
+Hit result page
+Shows the updated hand after the player presses the hit button
+End game page
+Shows whether the player won or lost the game
+Statistics page
+Displays the players balance, games played, and games won
+User Input (minimum 3)
+
+Description of user input components (TextBox, TextArea, CheckBox, or SelectBox) and their purposes
+
+For more information on these input types, see Drafter Documentation.
+
+
+
+Select betting size
+Lets the user choose how much to bet
+Button inputs
+Lets the user hit, stand, or split
+Enter name
+Textbox that lets the user enter their name
+If Statements (minimum 3)
+Brief description of what will be evaluated in your if statements and how they will meaningfully change the logic of the site
+
+
+
+Player bust check
+If the the player busts, then the dealer wins
+Blackjack check
+If a player wins by blackjack, then they get 2.5x payout
+Dealer draw logic
+Has the draw another card if their total is less than 17
+Loop (minimum 1)
+This loop must iterate over the list/dict of dataclass instances in your State attribute.
+Description of this loop and why it is meaningful to the site
+
+
+
+For card in player_hand
+Adds the total of the player's hand.
+
+
+# ----------------------------------
+# SECOND DATACLASS: CARD
+# ----------------------------------
+
+@dataclass
+class Card:
+ suit: str
+ rank: str
+ value: int
+
+
+# ----------------------------------
+# MAIN STATE DATACLASS
+# ----------------------------------
+
+@dataclass
+class State:
+ player_hand: list
+ dealer_hand: list
+ deck: list
+ game_status: str
+ player_score: int
+ balance: float
+ player_name: str
+ bet: int
+ games_played: int
+ games_won: int
+ split_hand: list
+ active_hand: str
+ result_message: str
+
+
+# ----------------------------------
+# DECK AND CARD FUNCTIONS
+# ----------------------------------
+
+def create_deck():
+ suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
+ ranks = [
+ ("2", 2), ("3", 3), ("4", 4), ("5", 5),
+ ("6", 6), ("7", 7), ("8", 8), ("9", 9),
+ ("10", 10), ("J", 10), ("Q", 10),
+ ("K", 10), ("A", 11)
+ ]
+
+ deck = []
+
+ for suit in suits:
+ for rank, value in ranks:
+ deck.append(Card(suit, rank, value))
+
+ random.shuffle(deck)
+ return deck
+
+
+def draw_card(state):
+ if len(state.deck) == 0:
+ state.deck = create_deck()
+
+ return state.deck.pop()
+
+
+def hand_total(hand):
+ total = 0
+
+ # Loop through every card in the hand.
+ for card in hand:
+ total += card.value
+
+ # Change aces from 11 to 1 if necessary.
+ for card in hand:
+ if total > 21 and card.rank == "A" and card.value == 11:
+ card.value = 1
+ total -= 10
+
+ return total
+
+
+def display_hand(hand):
+ cards = []
+
+ for card in hand:
+ cards.append(card.rank + " of " + card.suit)
+
+ return ", ".join(cards)
+\
+Worked for 9s
+Implemented gameplay route functions
+Searched the web for Drafter Python framework educational documentation route Page Button TextBox SelectBox syntax
+Absolutely. Below are the route functions for your blackjack poker-drafter site, using your existing Card and State dataclasses and deck functions.
+I'll keep the code in the Drafter style (@route, Page, Button, etc.) and make sure it covers your seven required routes, the five page types, betting, player names, statistics, and splitting.
+One important detail: your hand_total() function already handles Aces changing from 11 to 1, so we'll reuse it throughout the game rather than writing a second scoring system.
+1. Add these route functions below your existing functions
+The code assumes you want the player to start with a balance of $1,000 and use bets of $10, $25, $50, or $100.
+It also includes a basic split mechanic. When the player splits, each hand gets played separately against the dealer.
+# ----------------------------------# HELPER FUNCTIONS FOR THE ROUTES# ----------------------------------def get_active_hand(state):    if state.active_hand == "split":        return state.split_hand    return state.player_handdef check_player_bust(state):    hand = get_active_hand(state)    return hand_total(hand) > 21def game_board(state):    content = [        Header("Blackjack"),        "Player: " + state.player_name,        "Balance: $" + str(state.balance),        "Current bet: $" + str(state.bet),        "",        Header("Dealer's Hand"),        # Only show the dealer's first card during the player's turn.        display_hand(state.dealer_hand[:1]) + ", Hidden Card",        "",        Header("Your Hand"),        display_hand(state.player_hand),        "Your total: " + str(hand_total(state.player_hand)),    ]    if state.split_hand:        content += [            "",            Header("Your Split Hand"),
+2. Add your start_server at the bottom
+Your State dataclass needs initial values for all 13 attributes. Use this to start your website:
+start_server(State(    player_hand=[],    dealer_hand=[],    deck=create_deck(),    game_status="not started",    player_score=0,    balance=1000,    player_name="Player",    bet=0,    games_played=0,    games_won=0,    split_hand=[],    active_hand="player",    result_message=""))
+3. Requirements checklist
+Here's how the code meets your project requirements:
+Requirement
+Implementation
+4+ State attributes
+You have 13
+Second dataclass
+Card
+7+ routes
+9 routes
+5+ pages
+Home, game board, hit result, results, statistics
+3+ user inputs
+TextBox, SelectBox, buttons
+3+ if statements
+Bust, blackjack, dealer draws, ties, split validation
+Loop through dataclass instances
+hand_total()
+Player balance
+Updated after each round
+Player statistics
+Games played and won
+Split
+Separate second hand
+
+4. Important things to know
+There are a few gameplay details worth knowing before submitting:
+Blackjack payout: A natural blackjack pays 2.5 times the original bet (including the returned stake).
+Splitting: The player pays another bet to create a second hand.
+Dealer rules: The dealer draws until reaching 17 or higher.
+Aces: Your existing hand_total() function adjusts Aces from 11 to 1 when necessary.
+One limitation: This is a basic split implementation. It does not yet handle every casino blackjack rule, such as splitting Aces only once or restricting blackjack payouts on split hands.
+Also, your current results() counts a round as won if at least one hand wins, even if the other loses. That's reasonable for your overall games-won statistic.
+You can find the official documentation for the framework here: Drafter documentation.
+My recommendation: Test the regular hit/stand game first, then test splitting, busting, ties, and blackjack payouts. That will help you catch any issues before submitting your project.
+This might also interest you.
+Ad
+Ad options
+Learn more
+Ads do not influence the answers you get from ChatGPT. Your chats stay private. Learn about ads and personalization
+
 
