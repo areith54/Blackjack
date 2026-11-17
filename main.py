@@ -10,7 +10,6 @@ set_site_information(
     sources="Myself and ChatGPT.",
     planning=["plan.pdf", "design.pdf"],
     links=["https://github.com/areith54/Blackjack"]
-)
 hide_debug_information()
 set_website_framed(False)
 
@@ -156,22 +155,22 @@ def index(state: State):
 # ADDITIONAL ROUTE: SAVE PLAYER NAME
 # ----------------------------------
 
-@route
-def home(state: State, player_name: str):
-    if player_name.strip() != "":
-        state.player_name = player_name
-
-    return Page(state, [
-        Header("Blackjack Simulator"),
-        "Welcome, " + state.player_name + "!",
-        "Current balance: $" + str(state.balance),
-        "",
-        "Choose your bet to start playing:",
-        SelectBox("bet", ["10", "25", "50", "100"]),
-        "",
-        Button("Start Game", "start_game"),
-        Button("View Statistics", "statistics")
-    ])
+route
+def home(state: State, player_name: str = ""):
+if player_name.strip() != "":
+state.player_name = player_name
+ 
+return Page(state, [
+Header("Blackjack Simulator"),
+"Welcome, " + state.player_name + "!",
+"Current balance: $" + str(state.balance),
+"",
+"Choose your bet to start playing:",
+SelectBox("bet", ["10", "25", "50", "100"]),
+"",
+Button("Start Game", "start_game"),
+Button("View Statistics", "statistics")
+])
 
 
 # ----------------------------------
